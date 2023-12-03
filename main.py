@@ -28,9 +28,6 @@ def list_of_files(directory, extension):
 
 def extract_president_names(file_name):
 
-    """Extract the name of the president,
-
-    take in parameter the name of the file"""
 
     name_pattern = re.compile(r'\b(?:Chirac|Giscard dEstaing|Hollande|Macron|Mitterand|Sarkozy)\s+(.*?)\b', re.IGNORECASE)
 
@@ -48,9 +45,7 @@ def extract_president_names(file_name):
 
 def associate_first_name(president_names):
 
-    """associate the first name of the president with their name,
 
-    take in parameter a list of all their name"""
 
     name_mapping = {
 
@@ -88,9 +83,7 @@ def associate_first_name(president_names):
 
 def pres_name(files_names):
 
-    """Extract and associate each president's name with their first name,
 
-     take in parameter the name of the file"""
 
     tab_all_name = []
 
@@ -128,9 +121,7 @@ def pres_name(files_names):
 
 def display_president_names(president_names):
 
-    """Display all the name of the presidents,
 
-    by taking in parameter a list of all their names """
 
     unique_names_set = set(president_names)
 
@@ -148,9 +139,7 @@ def display_president_names(president_names):
 
 def clean_and_store_files(input_dir, output_dir):
 
-    """Remove the punctuation and the upper case of the input_dir and copied
 
-    the cleaned string into a directory output_dir"""
 
     cleaned_dir = os.path.join(os.path.dirname(__file__), output_dir)
 
@@ -192,7 +181,7 @@ def clean_and_store_files(input_dir, output_dir):
 
 def calculate_tf(a_string):
 
-    """Compute the Term Frequency of each word in a string take in parameter"""
+
 
     dic_tf = {}
 
@@ -216,9 +205,6 @@ def calculate_tf(a_string):
 
 def calculate_idf(directory):
 
-    """take a directory where all of cleaned speeches are in parameter
-
-    and compute the Inverse Document Frequency"""
 
     idf = {}
 
@@ -272,9 +258,6 @@ def calculate_idf(directory):
 
 def td_idf_matrix(directory):
 
-    """Take a directory in parameter and return a matrix
-
-    with the td-idf of each words in all documents """
 
     matrix = []
 
