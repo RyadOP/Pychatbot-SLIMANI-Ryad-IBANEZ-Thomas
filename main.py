@@ -292,3 +292,152 @@ def td_idf_matrix(directory):
 
 
     return matrix
+fonction tokenisation de la question
+def tokenisation_question(question):
+    question_clean = changer_le_format(question)  # permet d'enlever toutes les ponctuations et de lower la question
+    liste_de_mot_question = question_clean.split(" ")
+    return liste_de_mot_question
+
+
+# fonction calcul de la similarité
+
+def recherche_mot(liste_mot_question, matrice_tf_idf):
+    list_mot_trouves = []# Création d'une liste
+    for mot in liste_mot_question: #Parcours de la liste
+        if mot in matrice_tf_idf: #Si le mot se trouve dans la matrice tf_idf amors ça l'ajoute à liste qu'on vient créer
+            list_mot_trouves.append(mot)
+
+    return list_mot_trouves
+
+
+def tf_question(liste_mot_question, matrice_tf_idf):
+    dico_tf_question = {}  # création d'un dico
+    for mot in matrice_tf_idf.keys():  # Parcours de la matrice tf-idf
+        if mot in liste_mot_question:  # Si le mot de la question se trouve dans le corpus on calcule le TF
+            dico_tf_question[mot] = liste_mot_question.count(mot) / len(liste_mot_question)
+        else:  # Sinon on met 0 en valeur
+            dico_tf_question[mot] = 0
+    return dico_tf_question
+
+
+def calcul_vecteur_tf_idf_question(chemin, liste_mot_question, matrice_tf_idf, avec_cle=False):
+    idf_qst = idf(chemin)  # Appel de la fonction IDF
+    tf_qst = tf_question(liste_mot_question, matrice_tf_idf)  # Appel de la fonction TF de la question
+    # print(tf_qst)
+    tf_idf_qst = 0
+    if avec_cle:  # Si cette variable est vrai alors liste vecteur est dico
+        liste_vecteur = {}
+    else:  # Sinon liste vecteur est une liste
+        liste_vecteur = []
+    for mot in idf_qst.keys():
+        if avec_cle:
+            tf_idf_qst += idf_qst[mot] * tf_qst[mot]
+            liste_vecteur[mot] = idf_qst[mot] * tf_qst[mot]
+        else:
+            tf_idf_qst += idf_qst[mot] * tf_qst[mot]
+            liste_vecteur.append(idf_qst[mot] * tf_qst[mot])
+
+
+    return liste_vecteur
+
+
+def produit_scalaire(vectA, vectB):
+    sommeAB = 0  # Initialisation d'une variable somme
+    m = len(vectB)
+    for i in range(0, m):
+        """print(i)
+        print("Vecteur A : ", vectA[i])
+        print("Vecteur B : ", vectB[i])"""
+        sommeAB = sommeAB + (float(vectA[i]) * float(
+            vectB[i]))  # Somme du produit de  chaque élément du produits des vecteurs A et B
+    # print("Somme AB :",sommeAB)
+    return sommeAB
+
+
+def norme_vecteur(vect):
+    somme = 0
+    m = len(vect)
+    for i in range(0, m):
+        somme = somme + (vect[i] * vect[i])  # Somme des carrées de chaquue élément du vecteur A
+
+    somme = sqrt(somme)  # Racine carée de la somme du des carrées de chaque élément du vecteur A
+    """print("Norme :",somme)"""
+    return somme
+
+
+def calcul_similarité(vectA, vectB):
+    """print("Vecteur A : " ,vectA)
+    print("Vecteur B :",vectB)"""
+    resultat = produit_scalaire(vectA, vectB) / (norme_vecteur(vectA) * norme_vecteur(vectB))  # Calcul de la similarité
+
+    return resultat
+
+
+def calcul_document_pertinent(matrice_tf_idf, vecteur_tf_idf_question, liste_noms_fichiers):
+    matval = len(matrice_tf_idf)  # calcul la longueur de la matrice
+    similariteMax = 0  # initialisation de la vraible similariteMax
+    idDoc = None  # initialisation de la variable idDoc
+    for i in range(0, matval):
+        similariteCourante = calcul_similarité(vecteur_tf_idf_question,
+                                               matrice_tf_idf[i])  # appel de la fonction de la calcul similarite
+        if (
+                similariteCourante > similariteMax):  # attribue à similarité max la plus grande valeur du calcul de similarité
+            similariteMax = similariteCourante
+            idDoc = i
+
+    return liste_noms_fichiers[idDoc]  # renvoie le fichier correspondant à ce calcul
+
+
+def meilleur_tf_idf(chemin, liste_mot_question, matrice_tf_idf):
+    vecteur_question = calcul_vecteur_tf_idf_question(chemin, liste_mot_question, matrice_tf_idf,
+                                                      True)  # Appel de la fonction calcul vecteur tf idf question
+    tf_idf_max = 0
+    mot_max = None
+    for mot, valeur in vecteur_question.items(): #Parcours du dico vecteur question
+        if (valeur > tf_idf_max): #Renvoie le mot du meilleur score tf idf du dico vecteur question
+            tf_idf_max = valeur
+            mot_max = mot
+        # print("Avant: ", valeur, mot)
+
+    return mot_max
+
+
+def reponse_pertinente(fichier, mot):
+    fichier_ouvert = open(fichier, "r", encoding='UTF-8')
+    lignes = fichier_ouvert.readlines() #Transforme les lignes de fichier en liste
+    phrase_pertinente = ""
+    for ligne in lignes: #Parcours des lignes
+        if ligne.find(mot) > -1: #Quand le mot pertinent est trouvé pour la première fois il renvoie la ligne entière où il apparait
+            phrase_pertinente = ligne
+            break
+    if phrase_pertinente:  # Vérifie si la chaîne n'est pas vide
+        premier_caractere = phrase_pertinente[0].lower()  # Premier caractère en minuscule
+        reste_de_la_phrase = phrase_pertinente[1:]  # Le reste de la chaîne
+        return premier_caractere + reste_de_la_phrase
+    else:
+        return phrase_pertinente
+
+
+def generation_reponse(phrase_pertinente, question):
+    questions_genere = { #Création d'un dico afin de générer des réponses plus vivantes
+        "Comment": "Après analyse, ",
+        "Pourquoi": "Car, ",
+        "Peux-tu": "Oui, bien sûr! ",
+        "comment": "Après analyse, ",
+        "pourquoi": "Car, ",
+        "peux-tu": "Oui, bien sûr! "
+    }
+
+    for mot, reponse in questions_genere.items(): #Parcours du dico
+        "reponse_genere = None"
+        if mot in question: #Condition de si la clé du dico est dans la question posé par l'utilsateur alors ça met renvoie la valeur de clé plus la phrase pertinente
+            reponse_genere = questions_genere[mot] + phrase_pertinente
+            return reponse_genere
+        else :
+            reponse_genere = phrase_pertinente
+            if reponse_genere:  #Met une majuscule à la première lettre de la phrase si elle a trouve l'une des clés du dico dans la question
+                premier_caractere = reponse_genere[0].upper()
+                reste_de_la_phrase = reponse_genere[1:]
+                return premier_caractere + reste_de_la_phrase
+            else:
+                return reponse_genere
